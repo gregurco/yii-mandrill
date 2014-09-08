@@ -12,6 +12,5 @@
     ],
     "require": {
         "php": ">=5.3.0"
-    },
-    "target-dir": "Gregurco/YiiMandrill"
+    }
 }
