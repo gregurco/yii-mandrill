@@ -1,5 +1,14 @@
 <?php
 
+/**
+ *
+ * @property string $apiKey
+ * @property string $fromEmail
+ * @property string $fromName
+ * @property stdClass $usersInfo
+ * @property string $base
+ * @property array $errors
+ */
 class YiiMandrill extends CApplicationComponent
 {
     public $apiKey = '';
@@ -8,24 +17,27 @@ class YiiMandrill extends CApplicationComponent
 
     public $fromName = '';
 
-    public $usersInfo;
+    private $usersInfo;
 
     private $base = 'http://mandrillapp.com/api/1.0';
+
+    public $errors = array();
 
     public function init()
     {
         parent::init();
 
         if (!$this->testConnection()){
-            throw new Exception('Invalid API key');
+            $this->errors[] = 'Invalid API key';
         }
 
         $this->usersInfo = $this->get('/users/info');
     }
 
-    /*
+    /**
      * Test connection to Mandrill (validate api key)
      *
+     * @return bool
      */
     public function testConnection(){
         return $this->get('/users/ping') === 'PONG!';
@@ -38,6 +50,8 @@ class YiiMandrill extends CApplicationComponent
      *   $data = array('text' => 'text', 'subject' => 'subject', 'to_email' => 'gregurco.vlad@gmail.com',);
      *   Yii::app()->yiiMandrill->sendMessage($data);
      *
+     * @param $data
+     * @return mixed
      */
     public function sendMessage($data){
         $request = array(
@@ -60,9 +74,12 @@ class YiiMandrill extends CApplicationComponent
         return $result; // "sent", "queued", "scheduled", "rejected", or "invalid"
     }
 
-    /*
+    /**
      * Send request to mandrill api with json encoded data
      *
+     * @param $url
+     * @param array $params
+     * @return mixed
      */
     public function get($url, $params=array()){
         $params['key'] = $this->apiKey;
@@ -82,5 +99,15 @@ class YiiMandrill extends CApplicationComponent
         $decoded = json_decode($result);
 
         return is_null($decoded) ? $result : $decoded;
+    }
+
+    /**
+     * @param $key
+     * @return mixed
+     */
+    public function getUserInfoProperty($key){
+        if (!empty($this->usersInfo) && isset($this->usersInfo->$key)){
+            return $this->usersInfo->$key;
+        }
     }
 }
